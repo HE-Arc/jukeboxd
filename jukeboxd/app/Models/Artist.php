@@ -7,22 +7,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['id_spotify_artiste', 'nom'])]
-class Artiste extends Model
+#[Fillable(['spotify_artist_id', 'name'])]
+class Artist extends Model
 {
     use HasFactory;
 
-    protected $table = 'artiste';
-    protected $primaryKey = 'id_spotify_artiste';
+    protected $table = 'artists';
+    protected $primaryKey = 'spotify_artist_id';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;
 
     /**
-     * Albums composés par l'artiste
+     * Albums composed by the artist
      */
     public function albums(): HasMany
     {
-        return $this->hasMany(Album::class, 'id_spotify_artiste', 'id_spotify_artiste');
+        return $this->hasMany(Album::class, 'spotify_artist_id', 'spotify_artist_id');
     }
 }
