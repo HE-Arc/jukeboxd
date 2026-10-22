@@ -12,8 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('albums', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('spotify_album_id')->primary();
+            $table->string('title');
+            $table->string('cover_url');
+            $table->date('release_date');
+            $table->string('spotify_artist_id');
+
+            $table->foreign('spotify_artist_id')
+                ->references('spotify_artist_id')
+                ->on('artists')
+                ->cascadeOnDelete();
         });
     }
 

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('artists', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('spotify_artist_id')->primary();
+            $table->string('name');
         });
     }
 
