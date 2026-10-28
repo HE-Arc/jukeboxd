@@ -18,3 +18,9 @@ Route::post('/login', [AuthController::class, 'login']);
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Profile
+Route::get('/profile', function () {
+    return view('welcome');
+})->middleware('auth')->name('profile');
+
+
