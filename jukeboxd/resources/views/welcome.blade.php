@@ -6,9 +6,8 @@
 @auth
     <div class="max-w-4xl mx-auto px-4 py-6">
         
-        <!-- En-tête du Profil (Avatar, Nom, Stats & Bouton) -->
+        <!-- En-tête du Profil -->
         <div class="flex flex-col items-center">
-            
             <div class="flex items-center justify-center gap-10 sm:gap-14">
                 <div class="flex flex-col items-center">
                     <h1 class="mt-3 text-lg sm:text-xl font-bold text-neutral-900 tracking-tight">
@@ -33,49 +32,30 @@
 
             @php
                 $userFavorites = Auth::user()->albums()->wherePivot('is_favorite', true)->take(4)->get();
-                
-                $mockCovers = [
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                ];
+                $albumsToDisplay = $userFavorites->isNotEmpty() ? $userFavorites : collect(range(1, 4))->map(fn() => (object) [
+                    'title' => '',
+                    'cover_url' => '',
+                    'pivot' => (object) ['rating' => 0]
+                ]);
             @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                @if ($userFavorites->isNotEmpty())
-                    @foreach ($userFavorites as $album)
-                        <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group">
-                            <img src="{{ $album->cover_url }}" 
-                                 alt="{{ $album->title }}" 
-                                 class="w-full h-full object-cover">
+                @foreach ($albumsToDisplay as $album)
+                    @php
+                        $currentRating = (float) ($album->pivot->rating ?? 0);
+                    @endphp
+                    <div class="flex flex-col items-center">
+                        <div class="w-full aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group relative">
+                            @if (!empty($album->cover_url))
+                                <img src="{{ $album->cover_url }}" 
+                                     alt="{{ $album->title }}" 
+                                     class="w-full h-full object-cover">
+                            @endif
                         </div>
-                    @endforeach
-                @else
-                    @foreach ($mockCovers as $mock)
-                        <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group relative">
-                            <img src="{{ $mock['image'] }}" 
-                                 alt="{{ $mock['title'] }}" 
-                                 class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
-                @endif
+
+                        <x-star-rating :rating="$currentRating" />
+                    </div>
+                @endforeach
             </div>
         </div>
 
