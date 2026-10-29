@@ -6,9 +6,8 @@
 @auth
     <div class="max-w-4xl mx-auto px-4 py-6">
         
-        <!-- En-tête du Profil (Avatar, Nom, Stats & Bouton) -->
+        <!-- En-tête du Profil -->
         <div class="flex flex-col items-center">
-            
             <div class="flex items-center justify-center gap-10 sm:gap-14">
                 <div class="flex flex-col items-center">
                     <h1 class="mt-3 text-lg sm:text-xl font-bold text-neutral-900 tracking-tight">
@@ -32,7 +31,12 @@
             </h2>
 
             @php
-                $albums = \App\Models\Album::with('artist')->take(4)->get();
+                $userFavorites = Auth::user()->albums()->wherePivot('is_favorite', true)->take(4)->get();
+                $albumsToDisplay = $userFavorites->isNotEmpty() ? $userFavorites : collect(range(1, 4))->map(fn() => (object) [
+                    'title' => '',
+                    'cover_url' => '',
+                    'pivot' => (object) ['rating' => 0]
+                ]);
             @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
