@@ -32,57 +32,31 @@
             </h2>
 
             @php
-                $userFavorites = Auth::user()->albums()->wherePivot('is_favorite', true)->take(4)->get();
-                
-                $mockCovers = [
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                    [
-                        'title' => '',
-                        'artist' => '',
-                        'image' => '',
-                    ],
-                ];
+                $albums = \App\Models\Album::with('artist')->take(4)->get();
             @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                @if ($userFavorites->isNotEmpty())
-                    @foreach ($userFavorites as $album)
-                        <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group">
-                            <img src="{{ $album->cover_url }}" 
-                                 alt="{{ $album->title }}" 
-                                 class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
-                @else
-                    @foreach ($mockCovers as $mock)
-                        <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group relative">
-                            <img src="{{ $mock['image'] }}" 
-                                 alt="{{ $mock['title'] }}" 
-                                 class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
-                @endif
+                @foreach ($albums as $album)
+                    <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group">
+                        <img src="{{ $album->cover_url }}" 
+                             alt="{{ $album->title }}" 
+                             title="{{ $album->title }} - {{ $album->artist?->name }}"
+                             class="w-full h-full object-cover">
+                    </div>
+                @endforeach
+
+                @for ($i = count($albums); $i < 4; $i++)
+                    <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs flex items-center justify-center text-neutral-400">
+                        <span class="text-2xl text-neutral-400">+</span>
+                    </div>
+                @endfor
             </div>
         </div>
 
     </div>
 @else
     <!-- Vue invité -->
-    <div class="text-center py-20">
+    <div class="text-center py-16">
         <h1 class="text-4xl sm:text-5xl font-extrabold text-neutral-900 tracking-tight">
             <span class="text-brand-green">Jukeboxd</span>
         </h1>
