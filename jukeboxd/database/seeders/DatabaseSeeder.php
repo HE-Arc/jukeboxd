@@ -12,13 +12,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
+        // Créer un utilisateur de test via la Factory
+        if (!User::where('email', 'test@example.com')->exists()) {
+            User::factory()->create([
                 'username' => 'testuser',
-                'password' => bcrypt('password123'),
-            ]
-        );
+                'email' => 'test@example.com',
+                'password' => 'password123',
+            ]);
+        }
+
+        // User::factory(5)->create();
 
         $this->call([
             AlbumSeeder::class,
