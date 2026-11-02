@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,5 +23,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/profile', function () {
     return view('welcome');
 })->middleware('auth')->name('profile');
+
+// Rating
+Route::post('/albums/{spotify_album_id}/rate', [RatingController::class, 'rate'])
+    ->middleware('auth')
+    ->name('ratings.rate');
 
 

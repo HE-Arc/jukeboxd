@@ -31,13 +31,16 @@
             </h2>
 
             @php
-                $albums = \App\Models\Album::with('artist')->take(4)->get();
+                $user = Auth::user();
+                $albums = \App\Models\Album::with(['artist', 'ratings' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }])->take(4)->get();
             @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                 @foreach ($albums as $album)
                     @php
-                        $currentRating = (float) ($album->pivot->rating ?? 0);
+                        $currentRating = (float) ($album->ratings->first()?->rating ?? 0);
                     @endphp
                     <div class="flex flex-col items-center">
                         <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group relative">
@@ -46,7 +49,7 @@
                                  title="{{ $album->title }} - {{ $album->artist?->name }}"
                                  class="w-full h-full object-cover">
                         </div>
-                        <x-star-rating :rating="$currentRating" />
+                        <x-star-rating :rating="$currentRating" :album-id="$album->spotify_album_id" />
                     </div>
                 @endforeach
                 @for ($i = count($albums); $i < 4; $i++)
