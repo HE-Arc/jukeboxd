@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['spotify_album_id', 'title', 'cover_url', 'release_date', 'spotify_artist_id'])]
 class Album extends Model
@@ -43,5 +44,13 @@ class Album extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'ratings', 'spotify_album_id', 'user_id')->withPivot(['rating', 'is_favorite']);
+    }
+
+    /**
+     * Ratings of the album
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'spotify_album_id', 'spotify_album_id');
     }
 }
