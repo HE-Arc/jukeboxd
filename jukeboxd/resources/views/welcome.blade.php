@@ -31,24 +31,24 @@
             </h2>
 
             @php
-                $userFavorites = Auth::user()->albums()->wherePivot('is_favorite', true)->take(4)->get();
-                $albumsToDisplay = $userFavorites->isNotEmpty() ? $userFavorites : collect(range(1, 4))->map(fn() => (object) [
-                    'title' => '',
-                    'cover_url' => '',
-                    'pivot' => (object) ['rating' => 0]
-                ]);
+                $albums = \App\Models\Album::with('artist')->take(4)->get();
             @endphp
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                 @foreach ($albums as $album)
-                    <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group">
-                        <img src="{{ $album->cover_url }}" 
-                             alt="{{ $album->title }}" 
-                             title="{{ $album->title }} - {{ $album->artist?->name }}"
-                             class="w-full h-full object-cover">
+                    @php
+                        $currentRating = (float) ($album->pivot->rating ?? 0);
+                    @endphp
+                    <div class="flex flex-col items-center">
+                        <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs hover:scale-105 transition-transform duration-200 cursor-pointer group relative">
+                            <img src="{{ $album->cover_url }}" 
+                                 alt="{{ $album->title }}" 
+                                 title="{{ $album->title }} - {{ $album->artist?->name }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <x-star-rating :rating="$currentRating" />
                     </div>
                 @endforeach
-
                 @for ($i = count($albums); $i < 4; $i++)
                     <div class="aspect-square bg-neutral-200 overflow-hidden shadow-xs flex items-center justify-center text-neutral-400">
                         <span class="text-2xl text-neutral-400">+</span>
