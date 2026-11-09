@@ -68,6 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${escapeHtml(meta)}
                             </div>
                         </div>
+                        <button type="button" 
+                                title="Marquer comme écouté"
+                                class="listened-btn p-1.5 rounded-full text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 transition-all shrink-0 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
                 `;
             }).join('');
@@ -96,8 +103,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Close on click outside
+    // Global click listener: handles listened button toggle and popover click-outside
     document.addEventListener('click', (e) => {
+        const listenedBtn = e.target.closest('.listened-btn');
+        if (listenedBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isListened = listenedBtn.dataset.listened === 'true';
+            listenedBtn.dataset.listened = isListened ? 'false' : 'true';
+
+            const isOverlay = listenedBtn.classList.contains('listened-overlay');
+
+            if (!isListened) {
+                if (isOverlay) {
+                    listenedBtn.classList.remove('bg-black/50', 'text-white/70');
+                    listenedBtn.classList.add('bg-brand-green', 'text-white');
+                } else {
+                    listenedBtn.classList.remove('text-neutral-300');
+                    listenedBtn.classList.add('text-brand-green', 'bg-emerald-50');
+                }
+            } else {
+                if (isOverlay) {
+                    listenedBtn.classList.remove('bg-brand-green', 'text-white');
+                    listenedBtn.classList.add('bg-black/50', 'text-white/70');
+                } else {
+                    listenedBtn.classList.remove('text-brand-green', 'bg-emerald-50');
+                    listenedBtn.classList.add('text-neutral-300');
+                }
+            }
+            return;
+        }
+
         if (!form.contains(e.target)) {
             popover.classList.add('hidden');
         }
