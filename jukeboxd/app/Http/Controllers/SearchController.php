@@ -32,7 +32,7 @@ class SearchController extends Controller
     public function live(Request $request): JsonResponse
     {
         return response()->json(
-            $this->spotify->search((string) $request->input('q', ''), 6)
+            $this->spotify->search((string) $request->input('q', ''), 5)
         );
     }
 }

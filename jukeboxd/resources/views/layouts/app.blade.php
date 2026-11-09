@@ -22,10 +22,12 @@
             </a>
 
             <div class="flex items-center gap-4 sm:gap-6">
-                <form action="{{ url('/search') }}" method="GET" class="relative">
+                <form action="{{ url('/search') }}" method="GET" class="relative" id="search-form">
                     <div class="relative flex items-center">
                         <input type="text" 
                                name="q" 
+                               id="search-input"
+                               autocomplete="off"
                                placeholder="Rechercher un album, artiste..." 
                                value="{{ request('q') }}"
                                class="w-48 sm:w-72 md:w-80 h-10 pl-4 pr-10 rounded-full bg-brand-green text-black placeholder-neutral-700 text-sm font-medium border border-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-neutral-900 transition-all" />
@@ -35,6 +37,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
                             </svg>
                         </button>
+                    </div>
+                    <div id="search-popover" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-200 overflow-hidden z-50">
+                        <div id="search-results" class="divide-y divide-neutral-100 max-h-80 overflow-y-auto"></div>
                     </div>
                 </form>
 

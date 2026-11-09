@@ -7,7 +7,7 @@
 
     <div class="mb-8">
         <h1 class="text-2xl sm:text-3xl font-light text-neutral-900 tracking-tight">
-            {{ $query !== '' ? "Résultats pour « {$query} »" : 'Rechercher un album ou un artiste' }}
+            {{ $query !== '' ? "Résultats pour \"{$query}\"" : 'Rechercher un album ou un artiste' }}
         </h1>
     </div>
 
