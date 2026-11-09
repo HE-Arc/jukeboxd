@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,5 +29,9 @@ Route::get('/profile', function () {
 Route::post('/albums/{spotify_album_id}/rate', [RatingController::class, 'rate'])
     ->middleware('auth')
     ->name('ratings.rate');
+
+// Search
+Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');
+
 
 
