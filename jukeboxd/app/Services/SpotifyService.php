@@ -48,4 +48,38 @@ class SpotifyService
         return Http::withToken($this->getAccessToken())
             ->baseUrl($this->apiUrl);
     }
+
+    /**
+     * Search for albums on Spotify and normalize the results
+     */
+    public function search(string $query, string $type = 'album,artist', int $limit = 6): array
+    {
+        if (trim($query) === '') {
+            return [];
+        }
+
+        $response = $this->client()->get('/search', [
+            'q' => $query,
+            'type' => $type,
+            'limit' => $limit,
+        ]);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        $albums = $response->json('albums.items') ?? [];
+
+        return array_map(function (array $album): array {
+            $artists = array_map(fn (array $artist): string => $artist['name'], $album['artists'] ?? []);
+
+            return [
+                'id' => $album['id'],
+                'title' => $album['name'],
+                'artist' => implode(', ', $artists),
+                'cover_url' => $album['images'][0]['url'] ?? null,
+                'year' => !empty($album['release_date']) ? substr($album['release_date'], 0, 4) : null,
+            ];
+        }, $albums);
+    }
 }
