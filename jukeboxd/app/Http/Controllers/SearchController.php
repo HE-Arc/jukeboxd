@@ -5,31 +5,34 @@ namespace App\Http\Controllers;
 use App\Services\SpotifyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class SearchController extends Controller
 {
     public function __construct(
-        protected SpotifyService $spotifyService
+        protected SpotifyService $spotify
     ) {}
 
     /**
-     * Live search endpoint returning JSON for the search popover.
+     * Search results page.
+     */
+    public function index(Request $request): View
+    {
+        $query = (string) $request->input('q', '');
+
+        return view('search.index', [
+            'query' => $query,
+            'albums' => $this->spotify->search($query, 10),
+        ]);
+    }
+
+    /**
+     * Real-time search endpoint for the popover.
      */
     public function live(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'q' => ['required', 'string', 'min:2'],
-        ]);
-
-        $query = trim($validated['q']);
-        $cacheKey = 'spotify_search_' . md5(mb_strtolower($query));
-
-        $results = Cache::remember($cacheKey, now()->addHour(), function () use ($query) {
-            return $this->spotifyService->search($query);
-        });
-
-        return response()->json($results);
+        return response()->json(
+            $this->spotify->search((string) $request->input('q', ''), 6)
+        );
     }
 }
-

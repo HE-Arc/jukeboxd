@@ -50,36 +50,39 @@ class SpotifyService
     }
 
     /**
-     * Search for albums on Spotify and normalize the results
+     * Search for albums on Spotify and normalize the results with automatic caching.
+     *
+     * @return array<int, array{id: string, title: string, artist: string, cover_url: string|null, year: string|null}>
      */
-    public function search(string $query, string $type = 'album,artist', int $limit = 6): array
+    public function search(string $query, int $limit = 10): array
     {
-        if (trim($query) === '') {
+        $query = trim($query);
+
+        if (mb_strlen($query) < 2) {
             return [];
         }
 
-        $response = $this->client()->get('/search', [
-            'q' => $query,
-            'type' => $type,
-            'limit' => $limit,
-        ]);
+        $safeLimit = max(1, min(10, $limit));
+        $cacheKey = 'spotify_search_' . md5(mb_strtolower($query)) . "_{$safeLimit}";
 
-        if ($response->failed()) {
-            return [];
-        }
+        return Cache::remember($cacheKey, now()->addHour(), function () use ($query, $safeLimit) {
+            $response = $this->client()->get('/search', [
+                'q' => $query,
+                'type' => 'album,artist',
+                'limit' => $safeLimit,
+            ]);
 
-        $albums = $response->json('albums.items') ?? [];
+            if ($response->failed()) {
+                return [];
+            }
 
-        return array_map(function (array $album): array {
-            $artists = array_map(fn (array $artist): string => $artist['name'], $album['artists'] ?? []);
-
-            return [
+            return collect($response->json('albums.items', []))->map(fn (array $album): array => [
                 'id' => $album['id'],
                 'title' => $album['name'],
-                'artist' => implode(', ', $artists),
+                'artist' => collect($album['artists'] ?? [])->pluck('name')->implode(', '),
                 'cover_url' => $album['images'][0]['url'] ?? null,
                 'year' => !empty($album['release_date']) ? substr($album['release_date'], 0, 4) : null,
-            ];
-        }, $albums);
+            ])->all();
+        });
     }
 }

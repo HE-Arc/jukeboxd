@@ -86,7 +86,7 @@ class SpotifyServiceTest extends TestCase
             return str_contains($request->url(), 'https://api.spotify.com/v1/search')
                 && $request['q'] === 'Discovery'
                 && $request['type'] === 'album,artist'
-                && (int) $request['limit'] === 6;
+                && (int) $request['limit'] === 10;
         });
     }
 

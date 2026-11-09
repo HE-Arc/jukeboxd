@@ -31,6 +31,7 @@ Route::post('/albums/{spotify_album_id}/rate', [RatingController::class, 'rate']
     ->name('ratings.rate');
 
 // Search
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');
 
 
