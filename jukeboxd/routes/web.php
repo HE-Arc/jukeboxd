@@ -25,10 +25,14 @@ Route::get('/profile', function () {
     return view('welcome');
 })->middleware('auth')->name('profile');
 
-// Rating
+// Rating & Listened
 Route::post('/albums/{spotify_album_id}/rate', [RatingController::class, 'rate'])
     ->middleware('auth')
     ->name('ratings.rate');
+
+Route::post('/albums/{spotify_album_id}/listened', [RatingController::class, 'toggleListened'])
+    ->middleware('auth')
+    ->name('ratings.listened');
 
 // Search
 Route::get('/search', [SearchController::class, 'index'])->name('search');
