@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     : `<div class="w-10 h-10 rounded-md bg-neutral-200 flex items-center justify-center text-[10px] text-neutral-500 font-medium shrink-0">♫</div>`;
 
                 const meta = [album.artist, album.year].filter(Boolean).join(' • ');
+                const isListened = Boolean(album.is_listened);
+                const stateClasses = isListened ? 'text-brand-green bg-emerald-50' : 'text-neutral-300';
 
                 return `
                     <div class="flex items-center gap-3 p-2.5 text-left select-none">
@@ -70,7 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <button type="button" 
                                 title="Marquer comme écouté"
-                                class="listened-btn p-1.5 rounded-full text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 transition-all shrink-0 cursor-pointer">
+                                data-album-id="${escapeHtml(album.id)}"
+                                data-listened="${isListened ? 'true' : 'false'}"
+                                class="listened-btn p-1.5 rounded-full ${stateClasses} hover:text-neutral-600 hover:bg-neutral-100 transition-all shrink-0 cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
                             </svg>
@@ -103,19 +107,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const applyListenedState = (albumId, listened) => {
+        document.querySelectorAll(`.listened-btn[data-album-id="${CSS.escape(albumId)}"]`).forEach((btn) => {
+            btn.dataset.listened = listened ? 'true' : 'false';
+            btn.classList.toggle('text-neutral-300', !listened);
+            btn.classList.toggle('text-brand-green', listened);
+            btn.classList.toggle('bg-emerald-50', listened);
+        });
+    };
+
     // Global click listener: handles listened button toggle and popover click-outside
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         const listenedBtn = e.target.closest('.listened-btn');
         if (listenedBtn) {
             e.preventDefault();
             e.stopPropagation();
 
-            const isListened = listenedBtn.dataset.listened === 'true';
-            listenedBtn.dataset.listened = isListened ? 'false' : 'true';
+            const albumId = listenedBtn.dataset.albumId;
+            if (!albumId || listenedBtn.dataset.loading === 'true') return;
 
-            listenedBtn.classList.toggle('text-neutral-300', isListened);
-            listenedBtn.classList.toggle('text-brand-green', !isListened);
-            listenedBtn.classList.toggle('bg-emerald-50', !isListened);
+            const previousState = listenedBtn.dataset.listened === 'true';
+            const nextState = !previousState;
+
+            // Optimistic UI update
+            listenedBtn.dataset.loading = 'true';
+            applyListenedState(albumId, nextState);
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                const res = await fetch(`/albums/${encodeURIComponent(albumId)}/listened`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Failed to toggle listened');
+
+                const data = await res.json();
+                applyListenedState(albumId, Boolean(data.listened));
+            } catch {
+                // Rollback on failure
+                applyListenedState(albumId, previousState);
+            } finally {
+                delete listenedBtn.dataset.loading;
+            }
             return;
         }
 
