@@ -50,6 +50,8 @@ class User extends Authenticatable
      */
     public function albums(): BelongsToMany
     {
-        return $this->belongsToMany(Album::class, 'ratings', 'user_id', 'spotify_album_id')->withPivot(['rating', 'is_favorite']);
+        return $this->belongsToMany(Album::class, 'ratings', 'user_id', 'spotify_album_id')
+            ->withPivot(['rating', 'is_favorite'])
+            ->orderByDesc('ratings.rowid');
     }
 }
