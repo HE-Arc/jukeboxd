@@ -116,6 +116,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const refreshProfileSection = async () => {
+        const section = document.getElementById('profile-listened-section');
+        if (!section) return;
+
+        try {
+            const res = await fetch(window.location.href, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!res.ok) return;
+
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const updatedSection = doc.getElementById('profile-listened-section');
+            if (updatedSection) {
+                section.innerHTML = updatedSection.innerHTML;
+            }
+        } catch {
+            // Ignore background refresh error
+        }
+    };
+
     // Global click listener: handles listened button toggle and popover click-outside
     document.addEventListener('click', async (e) => {
         const listenedBtn = e.target.closest('.listened-btn');
@@ -152,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await res.json();
                 applyListenedState(albumId, Boolean(data.listened));
+                await refreshProfileSection();
             } catch {
                 // Rollback on failure
                 applyListenedState(albumId, previousState);

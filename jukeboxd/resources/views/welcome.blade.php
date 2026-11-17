@@ -68,7 +68,7 @@
             </div>
         @endif
 
-        <div class="mt-10">
+        <div id="profile-listened-section" class="mt-10">
             <h2 class="text-2xl sm:text-3xl font-light text-neutral-800 mb-6 tracking-wide">
                 {{ $activeTab === 'albums' ? 'Tous les albums écoutés' : 'Albums récents' }}
             </h2>
