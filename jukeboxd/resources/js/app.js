@@ -113,25 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const isListened = listenedBtn.dataset.listened === 'true';
             listenedBtn.dataset.listened = isListened ? 'false' : 'true';
 
-            const isOverlay = listenedBtn.classList.contains('listened-overlay');
-
-            if (!isListened) {
-                if (isOverlay) {
-                    listenedBtn.classList.remove('bg-black/50', 'text-white/70');
-                    listenedBtn.classList.add('bg-brand-green', 'text-white');
-                } else {
-                    listenedBtn.classList.remove('text-neutral-300');
-                    listenedBtn.classList.add('text-brand-green', 'bg-emerald-50');
-                }
-            } else {
-                if (isOverlay) {
-                    listenedBtn.classList.remove('bg-brand-green', 'text-white');
-                    listenedBtn.classList.add('bg-black/50', 'text-white/70');
-                } else {
-                    listenedBtn.classList.remove('text-brand-green', 'bg-emerald-50');
-                    listenedBtn.classList.add('text-neutral-300');
-                }
-            }
+            listenedBtn.classList.toggle('text-neutral-300', isListened);
+            listenedBtn.classList.toggle('text-brand-green', !isListened);
+            listenedBtn.classList.toggle('bg-emerald-50', !isListened);
             return;
         }
 
