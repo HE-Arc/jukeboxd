@@ -2,7 +2,10 @@
 
 namespace Tests\Unit;
 
+use App\Models\Album;
+use App\Models\Artist;
 use App\Services\SpotifyService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -10,6 +13,8 @@ use Tests\TestCase;
 
 class SpotifyServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -100,5 +105,42 @@ class SpotifyServiceTest extends TestCase
         $results = $service->search('Discovery');
 
         $this->assertSame([], $results);
+    }
+
+    public function test_find_or_create_album_fetches_and_stores_artist_and_album(): void
+    {
+        Http::fake([
+            'https://api.spotify.com/v1/albums/album_123' => Http::response([
+                'id' => 'album_123',
+                'name' => 'Discovery',
+                'release_date' => '2001',
+                'artists' => [
+                    ['id' => 'artist_1', 'name' => 'Daft Punk'],
+                ],
+                'images' => [
+                    ['url' => 'https://example.com/discovery.jpg'],
+                ],
+            ], 200),
+        ]);
+
+        $service = new SpotifyService();
+        $album = $service->findOrCreateAlbum('album_123');
+
+        $this->assertNotNull($album);
+        $this->assertSame('Discovery', $album->title);
+        $this->assertDatabaseHas('artists', [
+            'spotify_artist_id' => 'artist_1',
+            'name' => 'Daft Punk',
+        ]);
+        $this->assertDatabaseHas('albums', [
+            'spotify_album_id' => 'album_123',
+            'title' => 'Discovery',
+            'spotify_artist_id' => 'artist_1',
+        ]);
+
+        // Second call should return from local DB without calling Spotify API again
+        $albumAgain = $service->findOrCreateAlbum('album_123');
+        $this->assertSame('album_123', $albumAgain->spotify_album_id);
+        Http::assertSentCount(1);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Album;
+use App\Models\Artist;
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
@@ -84,5 +86,51 @@ class SpotifyService
                 'year' => !empty($album['release_date']) ? substr($album['release_date'], 0, 4) : null,
             ])->all();
         });
+    }
+
+    /**
+     * Find an album in local database or fetch it from Spotify and store it
+     */
+    public function findOrCreateAlbum(string $spotifyAlbumId): ?Album
+    {
+        $existing = Album::find($spotifyAlbumId);
+        if ($existing) {
+            return $existing;
+        }
+
+        $response = $this->client()->get("/albums/{$spotifyAlbumId}");
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        $data = $response->json();
+        $primaryArtist = $data['artists'][0] ?? null;
+
+        if (!$primaryArtist || empty($data['id'])) {
+            return null;
+        }
+
+        $artist = Artist::firstOrCreate(
+            ['spotify_artist_id' => $primaryArtist['id']],
+            ['name' => $primaryArtist['name']]
+        );
+
+        $rawDate = $data['release_date'] ?? '1970-01-01';
+        $releaseDate = match (strlen($rawDate)) {
+            4 => "{$rawDate}-01-01",
+            7 => "{$rawDate}-01",
+            default => $rawDate,
+        };
+
+        return Album::firstOrCreate(
+            ['spotify_album_id' => $data['id']],
+            [
+                'title' => $data['name'],
+                'cover_url' => $data['images'][0]['url'] ?? '',
+                'release_date' => $releaseDate,
+                'spotify_artist_id' => $artist->spotify_artist_id,
+            ]
+        );
     }
 }
